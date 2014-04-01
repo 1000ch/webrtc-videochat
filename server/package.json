@@ -1,0 +1,20 @@
+{
+  "name": "webrtc-videochat-server",
+  "version": "0.0.0",
+  "description": "Simple WebSocket server for WebRTC video chat.",
+  "main": "index.js",
+  "scripts": {
+    "start": "forever start index.js",
+    "stop": "forever stopall"
+  },
+  "keywords": [
+    "WebRTC"
+  ],
+  "author": "1000ch",
+  "license": "MIT",
+  "dependencies": {
+    "websocket.io": "^0.2.1",
+    "express": "^3.5.1",
+    "forever": "^0.10.11"
+  }
+}
