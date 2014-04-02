@@ -6,7 +6,7 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
 window.URL = window.URL || window.webkitURL || window.mozURL;
 
 // Googleが提供するSTUNサーバーを指定し、RTCPeerConnectionを初期化する。
-var localPeer = new RTCPeerConnection({
+var peer = new RTCPeerConnection({
   "iceServers": [{"url": "stun:stun.l.google.com:19302"}]
 });
 
@@ -14,7 +14,7 @@ var localPeer = new RTCPeerConnection({
 var localGUID = guid();
 
 // 接続先のGUID
-var targetGUID = null;
+var remoteGUID = null;
 
 // WebSocketの初期化
 var webSocket = new WebSocket('ws://127.0.0.1:8124/');
@@ -51,7 +51,7 @@ webSocket.onmessage = function (e) {
   if (message.target === localGUID) {
 
     // 送信元を相手先とする
-    targetGUID = message.guid;
+    remoteGUID = message.guid;
 
     // 送信元の情報でdescriptionを初期化
     var remoteDescription = new RTCSessionDescription(message.description);
@@ -60,13 +60,13 @@ webSocket.onmessage = function (e) {
 
       // オファーの場合
       // ローカルのPeerオブジェクトに、リモートのdescriptionとしてセットする
-      localPeer.setRemoteDescription(remoteDescription, function () {
+      peer.setRemoteDescription(remoteDescription, function () {
         
         // アンサーの生成
-        localPeer.createAnswer(function (localDescription) {
+        peer.createAnswer(function (localDescription) {
           
           // 自身のdescriptionをローカルのPeerオブジェクトにセット
-          localPeer.setLocalDescription(localDescription, function () {
+          peer.setLocalDescription(localDescription, function () {
 
             // targetは送信元のGUIDを指定し
             // descriptionはcreateAnswerで生成したdescriptionを指定する
@@ -86,7 +86,7 @@ webSocket.onmessage = function (e) {
       
       // アンサーの場合
       // ローカルのPeerオブジェクトに、リモートのdescriptionとしてセットする
-      localPeer.setRemoteDescription(remoteDescription, function () {
+      peer.setRemoteDescription(remoteDescription, function () {
         console.log('Finish!');
       });
     }
@@ -97,7 +97,7 @@ webSocket.onmessage = function (e) {
       var iceCandidate = new RTCIceCandidate(message.candidate);
 
       // Peerオブジェクトにセット
-      localPeer.addIceCandidate(iceCandidate);
+      peer.addIceCandidate(iceCandidate);
     }
   }
 };
@@ -125,18 +125,18 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('connect').addEventListener('click', function () {
     
     var clients = document.getElementById('client-list');
-    targetGUID = clients.options[clients.selectedIndex].value;
+    remoteGUID = clients.options[clients.selectedIndex].value;
 
     // オファーの生成
-    localPeer.createOffer(function (localDescription) {
+    peer.createOffer(function (localDescription) {
 
       // 自身のdescriptionをローカルのPeerオブジェクトにセット
-      localPeer.setLocalDescription(localDescription, function () {
+      peer.setLocalDescription(localDescription, function () {
 
         var offer = {
           username: document.getElementById('local-username').value,
           guid: localGUID,
-          target: targetGUID,
+          target: remoteGUID,
           description: localDescription
         };
         
@@ -147,14 +147,14 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-localPeer.onicecandidate = function (e) {
+peer.onicecandidate = function (e) {
 
   if (e.candidate) {
 
     var message = {
       username: document.getElementById('local-username').value || 'Anonymous',
       guid: localGUID,
-      target: targetGUID,
+      target: remoteGUID,
       candidate: e.candidate
     };
 
@@ -163,7 +163,7 @@ localPeer.onicecandidate = function (e) {
   }
 };
 
-localPeer.onaddstream = function (e) {
+peer.onaddstream = function (e) {
 
   // ストリームが追加されたら、リモートの映像として表示する
   var remoteVideo = document.getElementById('remote-video');
@@ -174,7 +174,7 @@ localPeer.onaddstream = function (e) {
 function successCallback(stream) {
 
   // ローカルのPeerオブジェクトに自身のメディアストリームを追加する
-  localPeer.addStream(stream);
+  peer.addStream(stream);
 
   // 自身のメディアストリームをブラウザに表示する
   var localVideo = document.getElementById('local-video');
