@@ -87,7 +87,9 @@ webSocket.onmessage = function (e) {
       // アンサーの場合
       // ローカルのPeerオブジェクトに、リモートのdescriptionとしてセットする
       peer.setRemoteDescription(remoteDescription, function () {
-        console.log('Finish!');
+        
+        // 重複してOfferしないように無効化する
+        document.getElementById('connect').setAttribute('disabled', 'disabled');
       });
     }
 
@@ -123,7 +125,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 選択されているGUIDにP2P接続をオファーする
   document.getElementById('connect').addEventListener('click', function () {
-    
+
+    if (remoteGUID !== null) {
+      return;
+    }
+
     var clients = document.getElementById('client-list');
     remoteGUID = clients.options[clients.selectedIndex].value;
 
