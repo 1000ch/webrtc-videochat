@@ -80,7 +80,7 @@ webSocket.onmessage = function (e) {
             // 自身のdescriptionと接続したいGUIDを送信する
             webSocket.send(JSON.stringify(answer));
           });
-        });
+        }, errorCallback);
       });
     } else if (remoteDescription.type === 'answer') {
       
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // 自身のdescriptionと接続したいGUIDを送信する
         webSocket.send(JSON.stringify(offer));
       });
-    });
+    }, errorCallback);
   });
 });
 
@@ -181,7 +181,7 @@ function successCallback(stream) {
   localVideo.src = URL.createObjectURL(stream);
 }
 
-// ユーザーメディア取得失敗時のコールバック関数
+// ユーザーメディア取得失敗時、createOffer、createAnswerのコールバック関数
 function errorCallback(error) {
   console.log(error);
 }
